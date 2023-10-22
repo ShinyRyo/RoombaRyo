@@ -10,12 +10,22 @@ public class SLAM : MonoBehaviour
     public float changeDirectionDelay = 1f;
     private float changeDirectionCooldown = 0.1f;
 
-    private Dictionary<Vector3, bool> map = new Dictionary<Vector3, bool>();
+    public MapDisplay mapDisplay;  // MapDisplayの参照を保持
+
+    private Dictionary<Vector2Int, bool> exploredMap = new Dictionary<Vector2Int, bool>();
+
 
     void Update()
     {
         UpdateCooldown();
         SimulateSensors();
+        // 現在のルンバの位置を取得
+        Vector2Int currentPosition = new Vector2Int(Mathf.FloorToInt(transform.position.x), Mathf.FloorToInt(transform.position.z));
+        // 探索済みのマップデータを更新
+        exploredMap[currentPosition] = true;
+        // MapDisplayスクリプトを使用してマップを更新
+        mapDisplay.UpdateMap(exploredMap);
+        Debug.Log("Updated map at position: " + currentPosition);  // ログステートメントを追加
     }
 
     void UpdateCooldown()// 方向変更のクールダウンタイマーを更新
@@ -57,8 +67,9 @@ public class SLAM : MonoBehaviour
 
     void UpdateMap(Vector3 hitPoint)// 検出された障害物の位置でマップを更新
     {
-        map[hitPoint] = true;
+        exploredMap[new Vector2Int(Mathf.FloorToInt(hitPoint.x), Mathf.FloorToInt(hitPoint.z))] = true;
     }
+
 
     void ChangeDirection()// ロボットの方向をランダムに変更
     {
