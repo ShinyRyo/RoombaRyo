@@ -1,46 +1,48 @@
 using UnityEngine;
-using System.Collections.Generic;
 
 public class SLAM : MonoBehaviour
 {
     public float speed = 5f;
+    public float roombaWidth = 0.5f;  // ルンバの幅
     public float rotationSpeed = 360f;
-    public float sensorRange = 1f;  // センサーの範囲を更新
+    public float sensorRange = 1f;
     public float sensorOffset = 1f;
     public float changeDirectionDelay = 1f;
     private float changeDirectionCooldown = 0.1f;
+    public Color paintColor = Color.white;  // ペンキの色。デフォルトは白
+    public Material paintMaterial;  // 新しい public Material 変数
 
-    private Dictionary<Vector3, bool> map = new Dictionary<Vector3, bool>();
+    private TrailRenderer trailRenderer;
+    void Start()
+    {
+        trailRenderer = gameObject.GetComponent<TrailRenderer>();
+        if(trailRenderer == null) 
+        {
+            trailRenderer = gameObject.AddComponent<TrailRenderer>();
+        }
+        trailRenderer.material = paintMaterial;  // トレイルレンダラーのマテリアルを設定
+        trailRenderer.widthMultiplier = roombaWidth;
+        trailRenderer.time = Mathf.Infinity;
+    }
 
     void Update()
     {
-        UpdateCooldown();
-        SimulateSensors();
+        HandleMovement();
+        // TrailRenderer の色を更新
+        UpdateTrailColor();
     }
-
-    void UpdateCooldown()// 方向変更のクールダウンタイマーを更新
+    void UpdateTrailColor()
     {
-        if (changeDirectionCooldown > 0)
+        if(trailRenderer != null)
         {
-            changeDirectionCooldown -= Time.deltaTime;
+            trailRenderer.startColor = paintColor;
+            trailRenderer.endColor = paintColor;
         }
     }
-
-    void SimulateSensors()// 3つのセンサーをシミュレートする、1つはロボットの中央、残りの2つはロボットの両側
+    void HandleMovement()
     {
-        RaycastHit hit;
-        Vector3 leftSensorPosition = transform.position + transform.right * -sensorOffset;
-        Vector3 rightSensorPosition = transform.position + transform.right * sensorOffset;
-        Vector3 centerSensorPosition = transform.position;
-
-        // サイドセンサーのセンサー範囲をオフセットに基づいて調整
-        float adjustedSensorRange = sensorRange / Mathf.Cos(sensorOffset * Mathf.Deg2Rad);
-
-        if (DetectObstacle(leftSensorPosition, transform.forward, out hit, adjustedSensorRange) ||
-            DetectObstacle(rightSensorPosition, transform.forward, out hit, adjustedSensorRange) ||
-            DetectObstacle(centerSensorPosition, transform.forward, out hit, sensorRange))
+        if (IsObstacleDetected())
         {
-            UpdateMap(hit.point);
             ChangeDirection();
         }
         else
@@ -49,25 +51,27 @@ public class SLAM : MonoBehaviour
         }
     }
 
-    bool DetectObstacle(Vector3 position, Vector3 direction, out RaycastHit hit, float range)// デバッグラインを描画
+    bool IsObstacleDetected()
     {
-        Debug.DrawLine(position, position + direction * range, Color.red, 0.1f);  
-        return Physics.Raycast(position, direction, out hit, range);
+        RaycastHit hit;
+        Vector3 leftSensorPosition = transform.position + transform.right * -sensorOffset;
+        Vector3 rightSensorPosition = transform.position + transform.right * sensorOffset;
+        Vector3 centerSensorPosition = transform.position;
+
+        float adjustedSensorRange = sensorRange / Mathf.Cos(sensorOffset * Mathf.Deg2Rad);
+
+        return Physics.Raycast(leftSensorPosition, transform.forward, out hit, adjustedSensorRange) ||
+               Physics.Raycast(rightSensorPosition, transform.forward, out hit, adjustedSensorRange) ||
+               Physics.Raycast(centerSensorPosition, transform.forward, out hit, sensorRange);
     }
 
-    void UpdateMap(Vector3 hitPoint)// 検出された障害物の位置でマップを更新
-    {
-        map[hitPoint] = true;
-    }
-
-    void ChangeDirection()// ロボットの方向をランダムに変更
+    void ChangeDirection()
     {
         float randomAngle = Random.Range(0f, 360f);
         transform.Rotate(0, randomAngle, 0);
-        changeDirectionCooldown = changeDirectionDelay;
     }
 
-    void MoveForward()// ロボットを前進させる
+    void MoveForward()
     {
         transform.Translate(Vector3.forward * speed * Time.deltaTime);
     }
