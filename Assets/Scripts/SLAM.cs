@@ -12,7 +12,6 @@ public class SLAM : MonoBehaviour
     public Color paintColor = Color.white;  // ペンキの色。デフォルトは白
     public Material paintMaterial;  // 新しい public Material 変数
 
-<<<<<<< HEAD:Assets/SLAM.cs
     private TrailRenderer trailRenderer;
     void Start()
     {
@@ -31,7 +30,6 @@ public class SLAM : MonoBehaviour
         HandleMovement();
         // TrailRenderer の色を更新
         UpdateTrailColor();
-=======
     public MapDisplay mapDisplay;  // MapDisplayの参照を保持
 
     private Dictionary<Vector2Int, bool> exploredMap = new Dictionary<Vector2Int, bool>();
@@ -48,7 +46,6 @@ public class SLAM : MonoBehaviour
         // MapDisplayスクリプトを使用してマップを更新
         mapDisplay.UpdateMap(exploredMap);
         Debug.Log("Updated map at position: " + currentPosition);  // ログステートメントを追加
->>>>>>> origin/main:Assets/Scripts/SLAM.cs
     }
     void UpdateTrailColor()
     {
@@ -84,9 +81,7 @@ public class SLAM : MonoBehaviour
                Physics.Raycast(centerSensorPosition, transform.forward, out hit, sensorRange);
     }
 
-<<<<<<< HEAD:Assets/SLAM.cs
     void ChangeDirection()
-=======
     void UpdateMap(Vector3 hitPoint)// 検出された障害物の位置でマップを更新
     {
         exploredMap[new Vector2Int(Mathf.FloorToInt(hitPoint.x), Mathf.FloorToInt(hitPoint.z))] = true;
@@ -94,7 +89,6 @@ public class SLAM : MonoBehaviour
 
 
     void ChangeDirection()// ロボットの方向をランダムに変更
->>>>>>> origin/main:Assets/Scripts/SLAM.cs
     {
         float randomAngle = Random.Range(0f, 360f);
         transform.Rotate(0, randomAngle, 0);
